@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stone Depot — KPI Evaluation</title>
+<style>
+  :root {
+    --ink:    #292d34;
+    --body:   #656f7d;
+    --muted:  #a5b1c2;
+    --line:   #e8ebee;
+    --line2:  #e9ecf0;
+    --ground: #f7f8fa;
+    --card:   #ffffff;
+    --accent: #7B68EE;
+    --accent-deep: #6355d8;
+    --accent-soft: #f0edff;
+    --err:    #e5484d;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background: var(--ground);
+    color: var(--body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding: 2.5rem 1rem;
+  }
+  .shell {
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line2);
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(41,45,52,.04), 0 8px 24px rgba(41,45,52,.06);
+    overflow: hidden;
+  }
+  .accent-band { height: 8px; background: var(--accent); }
+  header {
+    padding: 2rem 2rem 1.6rem;
+    border-bottom: 1px solid var(--line2);
+  }
+  .kicker {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .5rem;
+  }
+  h1 { font-size: 1.55rem; font-weight: 700; color: var(--ink); line-height: 1.25; letter-spacing: -.01em; }
+  header p { margin-top: .55rem; color: var(--body); font-size: .94rem; }
+  .block { padding: 1.75rem 2rem; border-bottom: 1px solid var(--line2); }
+  .block:last-of-type { border-bottom: none; }
+  .field + .field { margin-top: 1.25rem; }
+  label.fld {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: .5rem;
+  }
+  label.fld .req { color: var(--accent); margin-left: 1px; }
+  select, input[type="text"] {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: .95rem;
+    color: var(--ink);
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: .7rem .8rem;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  select { cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23a5b1c2' d='M6 8L0 2l1.4-1.4L6 5.2 10.6.6 12 2z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .9rem center; padding-right: 2.2rem;
+  }
+  select:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(123,104,238,.15);
+  }
+  select:disabled { background: var(--ground); color: var(--muted); cursor: not-allowed; }
+  select:invalid, select option[disabled]:checked { color: var(--muted); }
+  #detailsBlock, #questionsBlock, footer { display: none; }
+  #detailsBlock.show, #questionsBlock.show, footer.show { display: block; }
+  .section-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: .25rem;
+  }
+  .section-sub { font-size: .85rem; color: var(--body); margin-bottom: 1.5rem; }
+  .q {
+    padding: 1.15rem 1.1rem;
+    border: 1.5px solid var(--line2);
+    border-radius: 10px;
+    margin-bottom: .9rem;
+    transition: border-color .12s, background .12s;
+  }
+  .q:last-of-type { margin-bottom: 0; }
+  .q.answered { border-color: var(--accent); background: var(--accent-soft); }
+  .q.miss { border-color: var(--err); }
+  .q-comp {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .35rem;
+    display: flex; align-items: center; gap: .45rem;
+  }
+  .q-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 5px;
+    background: var(--accent); color: #fff; font-size: .7rem; font-weight: 700;
+  }
+  .q-text { font-size: 1rem; color: var(--ink); font-weight: 500; margin-bottom: 1rem; line-height: 1.4; }
+  .q-sub { font-size: .95rem; color: var(--ink); font-weight: 500; margin-bottom: .75rem; line-height: 1.4; }
+  .q-divider { height: 1px; background: var(--line2); margin: 1.1rem 0; }
+  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: .5rem; }
+  @media (max-width: 560px) { .scale { grid-template-columns: 1fr 1fr; } }
+  .opt { position: relative; }
+  .opt input {
+    position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; margin: 0;
+  }
+  .opt label {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; gap: .3rem;
+    min-height: 66px; padding: .55rem .35rem;
+    background: #fff; border: 1.5px solid var(--line); border-radius: 8px; cursor: pointer;
+    transition: all .12s ease;
+  }
+  .opt .v { font-size: 1.15rem; font-weight: 700; color: var(--muted); transition: color .12s; }
+  .opt .t { font-size: .68rem; font-weight: 500; color: var(--body); line-height: 1.15; }
+  .opt label:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .opt input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .opt input:checked + label { background: var(--accent); border-color: var(--accent); }
+  .opt input:checked + label .v, .opt input:checked + label .t { color: #fff; }
+  footer {
+    padding: 1.5rem 2rem;
+    background: var(--ground);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .status { font-size: .85rem; color: var(--body); flex: 1; min-width: 160px; }
+  .status.err { color: var(--err); font-weight: 500; }
+  .btn {
+    font-family: var(--sans); font-size: .92rem; font-weight: 600; color: #fff;
+    background: var(--accent); border: none; border-radius: 8px; padding: .75rem 1.6rem; cursor: pointer;
+    transition: background .12s, transform .08s;
+  }
+  .btn:hover:not(:disabled) { background: var(--accent-deep); }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { background: var(--muted); cursor: not-allowed; }
+  .btn.sec { background: #fff; color: var(--accent); border: 1.5px solid var(--line); }
+  .btn.sec:hover { border-color: var(--accent); background: var(--accent-soft); }
+  #doneView { display: none; padding: 3rem 2rem; text-align: center; }
+  #doneView.show { display: block; }
+  .done-mark {
+    width: 52px; height: 52px; margin: 0 auto 1.3rem; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  }
+  #doneView h2 { font-size: 1.4rem; color: var(--ink); font-weight: 700; margin-bottom: .5rem; }
+  #doneView p { color: var(--body); font-size: .92rem; margin-bottom: 1.6rem; }
+  .summary { text-align: left; max-width: 420px; margin: 0 auto 1.7rem; border: 1.5px solid var(--line2); border-radius: 10px; overflow: hidden; }
+  .srow { display: flex; justify-content: space-between; padding: .65rem .95rem; font-size: .85rem; border-bottom: 1px solid var(--line2); }
+  .srow:last-child { border-bottom: none; }
+  .srow .k { color: var(--body); }
+  .srow .val { font-weight: 700; color: var(--ink); }
+  .srow.tot { background: var(--accent-soft); }
+  .srow.tot .k { color: var(--accent-deep); font-weight: 600; }
+  .srow.tot .val { color: var(--accent-deep); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="accent-band"></div>
+  <div id="formView">
+
+    <header>
+      <div class="kicker">Stone Depot · Performance</div>
+      <h1>KPI Evaluation</h1>
+      <p>Select your role, branch, and the position you're evaluating. Rate how often each behavior happens across the review period.</p>
+    </header>
+
+    <!-- Step 1: role + branch + position.
+         ORDER MATTERS: branch sits BEFORE position because the branch chosen
+         filters which positions appear. Both branch and position start
+         disabled and are enabled by the cascade in the script below. -->
+    <div class="block">
+      <div class="field">
+        <label class="fld" for="role">Your role <span class="req">*</span></label>
+        <select id="role" required>
+          <option value="" selected disabled>Select role</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="fld" for="branch">Branch <span class="req">*</span></label>
+        <select id="branch" required disabled>
+          <option value="" selected disabled>Select role first</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="fld" for="position">Position you're evaluating <span class="req">*</span></label>
+        <select id="position" required disabled>
+          <option value="" selected disabled>Select branch first</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Step 2: who. Hidden until a position is picked (see .show toggling). -->
+    <div class="block" id="detailsBlock">
+      <div class="field">
+        <label class="fld" for="employee">Employee being evaluated <span class="req">*</span></label>
+        <input type="text" id="employee" placeholder="Full name of the employee" required>
+      </div>
+    </div>
+
+    <!-- Step 3: questions. Injected by renderQuestions(); hidden until a position is picked. -->
+    <div class="block" id="questionsBlock">
+      <div class="section-title" id="qTitle"></div>
+      <div class="section-sub" id="qSub"></div>
+      <div id="questions"></div>
+    </div>
+
+    <footer id="footer">
+      <div class="status" id="status">Complete every field and all ratings to submit.</div>
+      <button class="btn" id="submitBtn" type="button">Submit evaluation</button>
+    </footer>
+  </div>
+
+  <div id="doneView">
+    <div class="done-mark">✓</div>
+    <h2>Evaluation recorded</h2>
+    <p id="doneMsg">The scores have been sent.</p>
+    <div class="summary" id="doneSummary"></div>
+    <button class="btn sec" id="againBtn" type="button">Evaluate another employee</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   WEBHOOK — paste your Make.com webhook URL between the quotes.
+   ============================================================ */
+const WEBHOOK_URL = "https://hook.us2.make.com/o16xiv9sk4tzgpc9cflrvqa5fo4an2qd";
+
+/* ============================================================
+   QUESTION BANK — the questions themselves, defined ONCE per
+   role + position. This is the source of truth for wording.
+
+   Shape:
+     BANK[evaluatorRole][positionName] = { components: [ ... ] }
+
+   Each component object:
+     key   -> short unique id, unique WITHIN a position. snake_case.
+     label -> human-readable component name.
+     q     -> single question string  (renders one scale)
+       OR
+     questions -> array of strings    (renders several scales that
+                  average into the component's score)
+
+   TO ADD A POSITION:
+     1. Add "Position Name": { components: [...] } here.
+     2. Add that same position name to BRANCH_ROSTER for every
+        branch that evaluates it. Names must match EXACTLY.
+   ============================================================ */
+const BANK = {
+  "Master Installer": {
+    "Junior Installer": {
+      components: [
+        {key: "technical_score", label: "Technical Training Score", questions: ["How often does the installer correctly apply the techniques taught under the Master Installer without needing on-site correction?", "How often does the installer demonstrate the fabrication and installation capabilities expected for their level?"]}
+      ]
+    },
+    "Senior Installer": {
+      components: [
+        {key: "technical_score", label: "Technical Training Score", questions: ["How often does the installer correctly apply the techniques taught under the Master Installer without needing on-site correction?", "How often does the installer demonstrate the fabrication and installation capabilities expected for their level?"]}
+      ]
+    },
+    "Fabricator/Installer Helper": {
+      components: [
+        {key: "technical_score", label: "Technical Training Score", questions: ["How often does the installer correctly apply the techniques taught under the Master Installer without needing on-site correction?", "How often does the installer demonstrate the fabrication and installation capabilities expected for their level?"]}
+      ]
+    }
+  },
+  "Admin Supervisor": {
+    "Admin Assistant": {
+      components: [
+        {key: "discount_accuracy", label: "Discount Compliance Score", questions: ["How often does the assistant attach all required proof (Google Review, approval email, or defect report) before finalizing the transaction?", "How often are approved discounts applied correctly in the system without entry errors?"]},
+        {key: "inventory_transaction", label: "Inventory Transaction Timeliness and Accuracy", questions: ["How often are the daily inventory logs accurate enough to need no manual correction or follow-up afterward?", "How often does the assistant submit the daily inventory updates for sold stones, adjustments, and deliveries on the same day they occur?"]},
+        {key: "inventory_management", label: "Inventory Management", questions: ["How often does the assistant notify the Admin Supervisor promptly and clearly once replenishment is needed?", "How often does the assistant catch items nearing or below reorder point before they run out?"]}
+      ]
+    },
+    "Project Coordinator 2": {
+      components: [
+        {key: "consumables_issuance", label: "Consumables Issuance Accuracy Rate", questions: ["How often are consumables released to installers correctly and recorded in the logbook?", "How often does the coordinator verify prior usage before issuing new stock and coordinate with Admin to update inventory?"]}
+      ]
+    }
+  },
+  "Business Development Officer": {
+    "Operations Manager": {
+      components: [
+        {key: "sop_training_completion", label: "SOP Training Completion Rate", q: "How often does the manager ensure branch employees are trained on new and existing processes and procedures?"},
+        {key: "sop_compliance", label: "SOP Compliance Rate", q: "How often do branches consistently follow all approved SOPs?"},
+        {key: "process_improvement", label: "Process Improvement Implementation Rate", q: "How often does the manager develop and implement process improvements that reduce time or errors?"},
+        {key: "client_satisfaction_survey", label: "Client Satisfaction Survey", q: "How often are client satisfaction surveys conducted and summarized for completed projects?"},
+        {key: "competitor_mystery_shopper", label: "Competitor Mystery Shopper Rate", q: "How often does the manager complete competitor mystery shopper visits on the required schedule?"},
+        {key: "internal_mystery_shopper", label: "Internal Mystery Shopper Rate", q: "How often does the manager complete internal mystery shopper assessments across branches as scheduled?"},
+        {key: "scheduled_branch_visit", label: "Scheduled Branch Visit Completion", q: "How often does the manager complete scheduled branch visits with a full checklist report?"},
+        {key: "random_branch_visit", label: "Random Branch Visit Completion", q: "How often does the manager complete the required random branch visits within the year?"},
+        {key: "issue_followup", label: "Issue Follow-up from Branch Visits", q: "How often does the manager monitor and address major issues documented during branch visits?"}
+      ]
+    },
+    "HR Generalist": {
+      components: [
+        {key: "labor_standards", label: "Compliance with Labor Standards", questions: ["How often does the HR Generalist keep the branch compliant with applicable labor and workplace safety requirements?", "How often are compliance gaps corrected promptly once identified rather than left outstanding?"]},
+        {key: "hr_policy_compliance", label: "HR Policy Development and Compliance", questions: ["How often does the HR Generalist review and update company policies, the Handbook, and the HR Manual on the annual schedule?", "How often are policy updates kept aligned with current labor laws rather than falling out of date?"]}
+      ]
+    }
+  },
+  "Operations Manager": {
+    "Branch Manager": {
+      components: [
+        {key: "weekly_meeting", label: "Weekly Branch Meeting Compliance Rate", questions: ["How often does the branch manager conduct the required weekly branch meeting?", "How often do these meetings actually cover progress, concerns, and operational coordination rather than just being held?"]},
+        {key: "customer_satisfaction", label: "Customer Satisfaction Score", questions: ["How often is a completed project's status updated to 'for feedbacking' within 24 hours of completion?", "How often does client feedback come back positive rather than neutral or negative?"]}
+      ]
+    },
+    "Project Admin": {
+      components: [
+        {key: "quotation_approval", label: "Quotation Review & Approval Compliance", questions: ["How often does the admin review and approve quotations within the two-working-day limit?", "How often are those approvals compliant with company policy and the Php 200,000 to Php 999,999 authority range?"]},
+        {key: "bidding_support", label: "Attendance and Support in Major Bidding Events", questions: ["How often does the admin attend the major bidding events they are invited to?", "How often does the admin provide the documentation and coordination support those biddings require?"]}
+      ]
+    },
+    "Project Coordinator 1": {
+      components: [
+        {key: "client_satisfaction_rating", label: "Client Satisfaction Rating", q: "How often do completed projects earn a positive client satisfaction rating?"}
+      ]
+    },
+    "Project Coordinator 2": {
+      components: [
+        {key: "client_satisfaction_turnover", label: "Client Satisfaction Post-Turnover", questions: ["How often do completed projects result in a satisfied client after turnover?", "How often does the coordinator address client concerns before they lower post-turnover satisfaction?"]}
+      ]
+    },
+    "Sales Specialist": {
+      components: [
+        {key: "customer_satisfaction_survey", label: "Customer satisfaction and Feeback Survey", q: "How often does the specialist's work result in positive client feedback?"}
+      ]
+    }
+  },
+  "General Accountant": {
+    "Branch Manager": {
+      components: [
+        {key: "qb_clickup_accuracy", label: "QuickBooks and ClickUp Accuracy Rate", questions: ["How often are financial records entered into QuickBooks and ClickUp without errors that need correction?", "How often does the manager reconcile entries across QuickBooks and ClickUp so both match?", "How often are flagged discrepancies resolved promptly rather than left outstanding?"]}
+      ]
+    },
+    "HR Generalist": {
+      components: [
+        {key: "payroll_accuracy", label: "Payroll Accuracy Rate", questions: ["How often are payroll computations completed with zero errors?", "How often do payroll runs stay compliant with company policies and require no corrections afterward?"]}
+      ]
+    }
+  },
+  "Finance Specialist": {
+    "Branch Manager": {
+      components: [
+        {key: "cash_deposit", label: "Cash Handling and Deposit Accuracy", questions: ["How often does the employee verify that cash on hand matches the recorded transactions with no discrepancies?", "How often are collected cash and checks deposited accurately and on schedule?"]}
+      ]
+    },
+    "HR Generalist": {
+      components: [
+        {key: "contribution_processing", label: "Employee Contribution Processing Timeliness & Accuracy", questions: ["How often are statutory contribution claims (SSS, PhilHealth, Pag-IBIG) processed accurately without errors?", "How often are those contributions submitted on or before their deadlines?"]}
+      ]
+    }
+  },
+  "Project Admin": {
+    "Branch Manager": {
+      components: [
+        {key: "ppedistributioncompliance", label: "PPE Distribution Compliance", questions: ["How often is all required PPE available and stocked when employees need it?", "How often are employees properly issued the PPE required for their tasks?"]}
+      ]
+    },
+    "Master Installer": {
+      components: [
+        {key: "quality_issues_raised", label: "Quality-Related Issues Raised to Project Coordinators Rate", q: "How often does the installer report quality-related issues to Project Coordinators on the same day they occur?"},
+        {key: "technical_issue_resolution", label: "Technical Issue Resolution", q: "How often does the installer resolve technical problems that arise during a project?"},
+        {key: "trainee_improvement", label: "Trainee Performance Improvement Rate", q: "How often do trainees show measurable skill improvement after completing their assigned training?"},
+        {key: "safety_incidents", label: "Number of Safety Incidents Reported", q: "How often does the installer complete work with zero preventable safety incidents or violations?"}
+      ]
+    }
+  },
+  "Branch Manager": {
+    "Warehouse Supervisor": {
+      components: [
+        {key: "attendance_shift", label: "Attendance and Shift Monitoring of Warehouse Personnel", q: "How often does the supervisor keep the warehouse fully staffed by managing breaks and covering absences?"},
+        {key: "cleanliness", label: "Cleanliness and Orderliness of Warehouse and Fabrication Area", q: "How often are the warehouse and fabrication areas kept clean and passing weekly inspections?"},
+        {key: "equipment_storage", label: "Equipment Condition and Proper Storage", q: "How often are tools kept in good condition and returned to proper storage after use?"},
+        {key: "delivery_accuracy", label: "Delivery Accuracy and Product Quality Check", q: "How often do delivered items match the Delivery Receipt and arrive defect-free?"},
+        {key: "punchlist_completeness", label: "Punchlist and Delivery Completeness", q: "How often are deliveries dispatched with a signed, complete punchlist?"},
+        {key: "safe_slab", label: "Safe Slab Loading Compliance Rate", q: "How often does the supervisor load slabs for pickup safely using proper handling procedures?"},
+        {key: "client_endorsement", label: "Timely Endorsement and Proper Client Assistance", q: "How often are clients properly assisted or endorsed promptly per company procedure?"},
+        {key: "ppe_safety", label: "Compliance with PPE and Safety Protocols", q: "How often are daily operations performed in full compliance, passing surprise inspections?"}
+      ]
+    },
+    "Admin Assistant": {
+      components: [
+        {key: "physical_document", label: "Physical Document Submission Compliance", questions: ["How often does the assistant submit the complete batch of physical documents to the back office on or before the 15th?", "How often are the submitted documents (201 files, incident reports, memos, receipts) properly organized, categorized, and complete?"]}
+      ]
+    },
+    "Company Driver": {
+      components: [
+        {key: "timely_delivery", label: "Timely and Complete Delivery", q: "How often does the driver complete all deliveries on or before the scheduled time?"},
+        {key: "delivery_documentation", label: "Delivery Documentation Accuracy", q: "How often does the driver secure complete documentation, including signed Delivery Receipts and GPS photos, for each delivery?"},
+        {key: "punchlist_completion", label: "Delivery Punchlist Completion Rate", q: "How often is the Delivery Punchlist fully completed within the day after delivery?"},
+        {key: "vehicle_maintenance", label: "Regular Vehicle Maintenance Reporting", q: "How often does the driver report vehicle issues on the same day and keep the truck on its preventive maintenance schedule?"},
+        {key: "travel_fuel_logs", label: "Accuracy of Travel and Fuel Logs", q: "How often does the driver submit accurate travel and fuel logs on the weekly schedule?"},
+        {key: "client_coordination", label: "Proper Client Coordination and Confirmation", q: "How often does the driver contact and confirm with the client before arriving for a delivery?"},
+        {key: "inquiry_endorsement", label: "Proper Endorsement of Client Inquiries", q: "How often does the driver forward client inquiries to office personnel within 24 hours of receipt?"}
+      ]
+    },
+    "Project Coordinator 1": {
+      components: [
+        {key: "site_measurements", label: "Site Measurements and Pre-Inspections Completed Accurately", q: "How often are project site measurements and pre-inspections completed with no accuracy issues?"},
+        {key: "slab_readiness_check", label: "Slab Quality and Installation Readiness Check", q: "How often are slabs inspected and cleared for readiness before installation begins?"},
+        {key: "timely_client_coordination", label: "Timely Client Coordination", q: "How often does the coordinator contact clients on time for key milestones like measurements, delivery, and installation?"}
+      ]
+    },
+    "Sales Specialist": {
+      components: [
+        {key: "sales_doc_accuracy", label: "Sales and Documentation Accuracy Rate", q: "How often are sales and delivery documents completed accurately with all signatures and submitted on the day received?"},
+        {key: "delivery_coordination", label: "Delivery Coordination Compliance Rate", q: "How often are deliveries properly scheduled and coordinated with clients, executed on time without conflicts?"},
+        {key: "training_participation", label: "Participation in training and promotions", q: "How often does the specialist complete assigned trainings and attend scheduled promotions and events?"}
+      ]
+    },
+    "Warehouse Helper": {
+      components: [
+        {key: "grooming_compliance", label: "Grooming Compliance Score", q: "How often does the helper meet company grooming standards during work hours?"},
+        {key: "slab_placement", label: "Accuracy of Slab Placement and Storage", q: "How often are slabs stored safely and organized according to warehouse protocol?"},
+        {key: "slab_counting_buffing", label: "Daily slab Counting and Buffing Completion", q: "How often does the helper complete the morning slab counting and buffing tasks?"},
+        {key: "labeling_tagging", label: "Labeling and Inventory Tagging Compliance", q: "How often are slabs labeled correctly and measured during handling?"},
+        {key: "securing_slabs", label: "Proper Securing of Slabs During Transport", q: "How often are slabs properly tied down with no shifting reported during transport?"},
+        {key: "delivery_doc_compliance", label: "Delivery Documentation Compliance", q: "How often are deliveries completed with signed DRs and submitted photos?"},
+        {key: "client_endorsement_wh", label: "Timely and Proper Client Endorsement", q: "How often are walk-in clients assisted or endorsed properly within five minutes?"},
+        {key: "ppe_tool_handling", label: "PPE Compliance and Tool Handling", q: "How often does the helper wear PPE and return tools properly during work?"}
+      ]
+    },
+    "Branch Liaison": {
+      components: [
+        {key: "courier_payment_docs", label: "Accuracy of Processing of Documents for Couriers and Payments", q: "How often are courier and payment documents accurately processed and submitted on the same day they are received?"},
+        {key: "supplier_canvassing", label: "Supplier Canvassing and Submission of Quotations", q: "How often does the liaison submit at least 3 valid quotations from BIR-registered suppliers?"},
+        {key: "deposit_accuracy", label: "Cash and Check Deposit Accuracy Rate", q: "How often are cash and check deposits accurately recorded and deposited on schedule?"},
+        {key: "safe_driving", label: "Compliance with Safety Driving Practices", q: "How often does the liaison fully follow safe driving protocols such as wearing a helmet and observing speed limits?"},
+        {key: "vehicle_readiness", label: "Vehicle Cleanliness and Readiness Before Use", q: "How often is the assigned motorcycle kept clean, fueled, and road-ready before use?"},
+        {key: "additional_tasks", label: "Timely and Complete Execution of Additional Tasks Assigned", q: "How often are additional assigned tasks completed thoroughly within the set deadline?"}
+      ]
+    },
+    "Project Coordinator 2": {
+      components: [
+        {key: "qa_qc_compliance", label: "QA/QC Compliance Rate", q: "How often does the coordinator complete a QA/QC inspection before a project is turned over to the client?"},
+        {key: "job_order_accuracy", label: "Job Order Accuracy Rate", q: "How often are job orders prepared and executed with full accuracy and no discrepancies?"},
+        {key: "post_project_docs", label: "Post-Project Documentation Accuracy", questions: ["How often are all project documents complete and properly filed within one week after project completion?", "How often are the filed documents free of missing items like signed quotations, job orders, or receipts?"]},
+        {key: "completion_certificates", label: "Client-Acknowledged Project Completion Certificates", q: "How often do completed projects have signed Completion and Warranty Certificates from the client?"},
+        {key: "petty_cash_accuracy", label: "Petty Cash Handling Accuracy", q: "How often are petty cash liquidations submitted accurately and on time?"},
+        {key: "task_coverage", label: "Task Coverage During PC1 or Branch Manager Absence", q: "How often are delegated tasks completed on time and without error when PC1 or the Branch Manager is absent?"}
+      ]
+    }
+  },
+  "Admin Assistant": {
+    "Warehouse Supervisor": {
+      components: [
+        {key: "slab_tagging", label: "Slab Tagging, Labeling, and Measurement Accuracy", q: "How often does the supervisor tag, label, and measure all slabs accurately and on time?"},
+        {key: "inventorydatabaseupdates", label: "Inventory Database Updates", q: "How often does the supervisor keep all slab records complete and updated daily?"},
+        {key: "reporting_resolution", label: "Reporting and Resolution of Slab Defects and Database Errors", q: "How often does the supervisor report slab defects and database errors to the Admin Assistant the same day?"}
+      ]
+    },
+    "Branch Liaison": {
+      components: [
+        {key: "inventory_assistance", label: "Inventory Assistance Accuracy", questions: ["How often do the physical inventory counts assisted by the employee match the recorded inventory?", "How often does the employee complete inventory assistance without creating discrepancies that need correction?"]},
+        {key: "slab_handling", label: "Slab Handling and Delivery Support with No Damage", questions: ["How often does the employee handle and load slabs without causing chips, cracks, or breakage?", "How often are delivery support tasks completed with all items arriving damage-free?"]}
+      ]
+    }
+  },
+  "Project Coordinator 1": {
+    "Branch Liaison": {
+      components: [
+        {key: "site_measurements", label: "Timely completion of site measurements- basic counter, L backsplash; to list limitations", q: "How often does the liaison complete site measurements on time and properly document limitations?"}
+      ]
+    }
+  }
+};
+
+/* ============================================================
+   BRANCH ROSTER — which positions each branch evaluates.
+   HIDE-UNTIL-READY: a position shows only if it is BOTH listed
+   here for the chosen branch AND has questions in BANK.
+   ============================================================ */
+const BRANCH_ROSTER = {
+  "Master Installer": {
+    "LAG": ["Junior Installer", "Senior Installer"],
+    "DVO": ["Fabricator/Installer Helper", "Junior Installer", "Senior Installer"],
+    "ILO": ["Fabricator/Installer Helper", "Junior Installer"],
+    "CDO": ["Junior Installer"],
+    "CEB": ["Junior Installer"]
+  },
+  "Admin Supervisor": {
+    "ILO": ["Admin Assistant", "Project Coordinator 2"],
+    "CEB": ["Admin Assistant"],
+    "CDO": ["Admin Assistant"]
+  },
+  "Business Development Officer": {
+    "ANX": ["HR Generalist", "Operations Manager"]
+  },
+  "Operations Manager": {
+    "DVO": ["Branch Manager", "Project Coordinator 1", "Sales Specialist"],
+    "ILO": ["Branch Manager", "Project Coordinator 1", "Project Coordinator 2", "Sales Specialist"],
+    "CDO": ["Branch Manager", "Project Coordinator 1", "Sales Specialist"],
+    "CEB": ["Branch Manager", "Project Coordinator 1"],
+    "ANX": ["Project Admin"],
+    "LAG": ["Project Coordinator 1"]
+  },
+  "General Accountant": {
+    "ILO": ["Branch Manager"],
+    "CEB": ["Branch Manager"],
+    "CDO": ["Branch Manager"],
+    "ANX": ["HR Generalist"]
+  },
+  "Finance Specialist": {
+    "ILO": ["Branch Manager"],
+    "CEB": ["Branch Manager"],
+    "CDO": ["Branch Manager"],
+    "ANX": ["HR Generalist"]
+  },
+  "Project Admin": {
+    "ILO": ["Branch Manager"],
+    "CEB": ["Branch Manager"],
+    "CDO": ["Branch Manager"],
+    "ANX": ["Master Installer"]
+  },
+  "Branch Manager": {
+    "CDO": ["Admin Assistant", "Company Driver", "Project Coordinator 1", "Sales Specialist", "Warehouse Helper", "Warehouse Supervisor"],
+    "CEB": ["Admin Assistant", "Company Driver", "Project Coordinator 1", "Warehouse Helper", "Warehouse Supervisor"],
+    "DVO": ["Branch Liaison", "Company Driver", "Project Coordinator 1", "Sales Specialist", "Warehouse Helper", "Warehouse Supervisor"],
+    "ILO": ["Admin Assistant", "Branch Liaison", "Company Driver", "Project Coordinator 1", "Project Coordinator 2", "Sales Specialist", "Warehouse Helper", "Warehouse Supervisor"],
+    "LAG": ["Project Coordinator 1", "Warehouse Helper", "Warehouse Supervisor"]
+  },
+  "Admin Assistant": {
+    "CDO": ["Warehouse Supervisor"],
+    "CEB": ["Warehouse Supervisor"],
+    "DVO": ["Branch Liaison", "Warehouse Supervisor"],
+    "ILO": ["Branch Liaison", "Warehouse Supervisor"],
+    "LAG": ["Warehouse Supervisor"]
+  },
+  "Project Coordinator 1": {
+    "DVO": ["Branch Liaison"],
+    "ILO": ["Branch Liaison"]
+  }
+};
+
+/* Frequency scale. v = numeric score sent in payload, t = label shown. */
+const SCALE = [
+  { v: 1, t: "Rarely / Never" },
+  { v: 2, t: "Sometimes" },
+  { v: 3, t: "Usually" },
+  { v: 4, t: "Almost Always" },
+  { v: 5, t: "Always" }
+];
+
+/* ---------- element refs ---------- */
+const roleSel = document.getElementById("role");
+const branchSel = document.getElementById("branch");
+const posSel = document.getElementById("position");
+const detailsBlock = document.getElementById("detailsBlock");
+const questionsBlock = document.getElementById("questionsBlock");
+const footer = document.getElementById("footer");
+const qTitle = document.getElementById("qTitle");
+const qSub = document.getElementById("qSub");
+const qWrap = document.getElementById("questions");
+const employeeEl = document.getElementById("employee");
+const submitBtn = document.getElementById("submitBtn");
+const statusEl = document.getElementById("status");
+
+Object.keys(BANK).forEach(role => {
+  const o = document.createElement("option");
+  o.value = role; o.textContent = role;
+  roleSel.appendChild(o);
+});
+
+roleSel.addEventListener("change", () => {
+  const role = roleSel.value;
+  branchSel.innerHTML = '<option value="" selected disabled>Select branch</option>';
+  const roster = BRANCH_ROSTER[role] || {};
+  Object.keys(roster).forEach(branch => {
+    const o = document.createElement("option");
+    o.value = branch; o.textContent = branch;
+    branchSel.appendChild(o);
+  });
+  branchSel.disabled = false;
+  posSel.innerHTML = '<option value="" selected disabled>Select branch first</option>';
+  posSel.disabled = true;
+  resetBelowPosition();
+});
+
+branchSel.addEventListener("change", () => {
+  const role = roleSel.value;
+  const branch = branchSel.value;
+  posSel.innerHTML = '<option value="" selected disabled>Select position</option>';
+  const rosterPositions = (BRANCH_ROSTER[role] && BRANCH_ROSTER[role][branch]) || [];
+  const bankedForRole = BANK[role] || {};
+  const available = rosterPositions.filter(pos => bankedForRole[pos]);
+  available.forEach(pos => {
+    const o = document.createElement("option");
+    o.value = pos; o.textContent = pos;
+    posSel.appendChild(o);
+  });
+  if (available.length === 0) {
+    posSel.innerHTML = '<option value="" selected disabled>No positions ready yet</option>';
+    posSel.disabled = true;
+  } else {
+    posSel.disabled = false;
+  }
+  resetBelowPosition();
+});
+
+posSel.addEventListener("change", renderQuestions);
+
+function resetBelowPosition() {
+  detailsBlock.classList.remove("show");
+  questionsBlock.classList.remove("show");
+  footer.classList.remove("show");
+  qWrap.innerHTML = "";
+}
+
+function getQuestions(c) {
+  if (Array.isArray(c.questions)) {
+    return c.questions.map((text, i) => ({ name: c.key + "__" + i, text: text }));
+  }
+  return [{ name: c.key, text: c.q }];
+}
+
+function renderQuestions() {
+  const role = roleSel.value;
+  const pos = posSel.value;
+  const set = BANK[role] && BANK[role][pos];
+  if (!set) return;
+  qTitle.textContent = pos + " — " + set.components.length + " component/s";
+  qSub.textContent = "Evaluated by " + role + " · " + branchSel.value + ". Rate each line, scale 1 (Rarely/Never) to 5 (Always).";
+  qWrap.innerHTML = "";
+  set.components.forEach((c, i) => {
+    const questions = getQuestions(c);
+    const multi = questions.length > 1;
+    const rows = questions.map((qu, qi) => {
+      const subLabel = multi
+        ? '<div class="q-sub">' + String.fromCharCode(97 + qi) + ". " + qu.text + '</div>'
+        : '<div class="q-text">' + qu.text + '</div>';
+      return subLabel +
+        '<div class="scale" role="radiogroup" aria-label="' + qu.text.replace(/"/g, "&quot;") + '">' +
+          SCALE.map(s =>
+            '<div class="opt">' +
+              '<input type="radio" name="' + qu.name + '" id="' + qu.name + "_" + s.v + '" value="' + s.v + '" aria-label="' + s.t + ', score ' + s.v + '">' +
+              '<label for="' + qu.name + "_" + s.v + '"><span class="v">' + s.v + '</span><span class="t">' + s.t + '</span></label>' +
+            '</div>'
+          ).join("") +
+        '</div>';
+    }).join('<div class="q-divider"></div>');
+    const q = document.createElement("div");
+    q.className = "q";
+    q.dataset.key = c.key;
+    q.innerHTML =
+      '<div class="q-comp"><span class="q-num">' + (i + 1) + '</span>' + c.label + '</div>' +
+      rows;
+    qWrap.appendChild(q);
+  });
+  detailsBlock.classList.add("show");
+  questionsBlock.classList.add("show");
+  footer.classList.add("show");
+  setStatus("Complete every field and all ratings to submit.");
+}
+
+qWrap.addEventListener("change", e => {
+  if (e.target.matches('input[type="radio"]')) {
+    const row = e.target.closest(".q");
+    row.classList.remove("miss");
+    const groups = row.querySelectorAll(".scale");
+    const allAnswered = [...groups].every(g => g.querySelector("input:checked"));
+    row.classList.toggle("answered", allAnswered);
+  }
+});
+
+function setStatus(msg, kind) {
+  statusEl.textContent = msg;
+  statusEl.className = "status" + (kind ? " " + kind : "");
+}
+
+submitBtn.addEventListener("click", async () => {
+  const role = roleSel.value;
+  const branch = branchSel.value;
+  const pos = posSel.value;
+  if (!role || !branch || !pos) { setStatus("Select your role, branch, and the position first.", "err"); return; }
+  if (!employeeEl.value.trim()) {
+    setStatus("Add the employee's name first.", "err"); return;
+  }
+  const comps = BANK[role][pos].components;
+  const missingComps = comps.filter(c =>
+    getQuestions(c).some(qu => !document.querySelector('input[name="' + qu.name + '"]:checked'))
+  );
+  if (missingComps.length) {
+    missingComps.forEach(c => document.querySelector('.q[data-key="' + c.key + '"]').classList.add("miss"));
+    document.querySelector('.q[data-key="' + missingComps[0].key + '"]').scrollIntoView({ block: "center" });
+    setStatus(missingComps.length + " component" + (missingComps.length > 1 ? "s" : "") + " still need a rating.", "err");
+    return;
+  }
+  const components = comps.map(c => {
+    const answers = getQuestions(c).map(qu => ({
+      question: qu.text,
+      score: Number(document.querySelector('input[name="' + qu.name + '"]:checked').value),
+    }));
+    const compScore = +(answers.reduce((s, a) => s + a.score, 0) / answers.length).toFixed(2);
+    return { component: c.label, key: c.key, score: compScore, answers: answers };
+  });
+  const overall = +(components.reduce((s, c) => s + c.score, 0) / components.length).toFixed(2);
+  const payload = {
+    evaluatorRole: role,
+    branch: branch,
+    position: pos,
+    employee: employeeEl.value.trim(),
+    components,
+    overallScore: overall,
+    scale: "1-5 (1=Rarely/Never, 5=Always)",
+    submittedAt: new Date().toISOString(),
+  };
+  submitBtn.disabled = true;
+  setStatus("Sending…");
+  try {
+    const res = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    showDone(payload);
+  } catch (err) {
+    submitBtn.disabled = false;
+    if (WEBHOOK_URL.includes("PASTE_YOUR")) {
+      setStatus("No webhook URL set yet. Add your Make.com URL in the code to send.", "err");
+    } else {
+      setStatus("Couldn't send — check the connection and try again.", "err");
+    }
+    console.error("Webhook send failed:", err);
+  }
+});
+
+const formView = document.getElementById("formView");
+const doneView = document.getElementById("doneView");
+const doneSummary = document.getElementById("doneSummary");
+
+function showDone(payload) {
+  doneSummary.innerHTML =
+    payload.components.map(c => '<div class="srow"><span class="k">' + c.component + '</span><span class="val">' + c.score + '</span></div>').join("") +
+    '<div class="srow tot"><span class="k">Overall (equal weight)</span><span class="val">' + payload.overallScore + '</span></div>';
+  formView.style.display = "none";
+  doneView.classList.add("show");
+  window.scrollTo({ top: 0 });
+}
+
+document.getElementById("againBtn").addEventListener("click", () => {
+  employeeEl.value = "";
+  document.querySelectorAll('input[type="radio"]:checked').forEach(r => (r.checked = false));
+  document.querySelectorAll(".q.answered").forEach(q => q.classList.remove("answered"));
+  submitBtn.disabled = false;
+  setStatus("Complete every field and all ratings to submit.");
+  doneView.classList.remove("show");
+  formView.style.display = "block";
+  window.scrollTo({ top: 0 });
+  employeeEl.focus();
+});
+</script>
+</body>
+</html>
