@@ -719,15 +719,21 @@ submitBtn.addEventListener("click", async () => {
     return { component: c.label, key: c.key, score: compScore, answers: answers };
   });
   const overall = +(components.reduce((s, c) => s + c.score, 0) / components.length).toFixed(2);
+  // Lean payload: only the fields needed downstream. The component/answer
+  // detail above is still used to COMPUTE overall, but is not sent.
+  // Per-component scores for the payload: label + averaged score only
+  // (for a multi-question component, score is the average of its questions).
+  const componentScores = components.map(c => ({
+    component: c.component,
+    score: c.score,
+  }));
   const payload = {
-    evaluatorRole: role,
+    evaluatorPosition: role,      // the evaluator's role/position
+    positionEvaluated: pos,       // the position being evaluated
     branch: branch,
-    position: pos,
     employee: employeeEl.value.trim(),
-    components,
-    overallScore: overall,
-    scale: "1-5 (1=Rarely/Never, 5=Always)",
-    submittedAt: new Date().toISOString(),
+    componentScores,              // per-component graded score
+    overallScore: overall,        // avg of component scores; each component = avg of its questions
   };
   submitBtn.disabled = true;
   setStatus("Sending…");
