@@ -762,7 +762,7 @@ const doneSummary = document.getElementById("doneSummary");
 
 function showDone(payload) {
   doneSummary.innerHTML =
-    payload.components.map(c => '<div class="srow"><span class="k">' + c.component + '</span><span class="val">' + c.score + '</span></div>').join("") +
+    payload.componentScores.map(c => '<div class="srow"><span class="k">' + c.component + '</span><span class="val">' + c.score + '</span></div>').join("") +
     '<div class="srow tot"><span class="k">Overall (equal weight)</span><span class="val">' + payload.overallScore + '</span></div>';
   formView.style.display = "none";
   doneView.classList.add("show");
