@@ -349,6 +349,46 @@ const BANK = {
       components: [
         {key: "customer_satisfaction_survey", label: "Customer satisfaction and Feeback Survey", q: "How often does the specialist's work result in positive client feedback?"}
       ]
+    },
+    "Admin Assistant": {
+      components: [
+        {key: "physical_document", label: "Physical Document Submission Compliance", questions: ["How often does the assistant submit the complete batch of physical documents to the back office on or before the 15th?", "How often are the submitted documents (201 files, incident reports, memos, receipts) properly organized, categorized, and complete?"]}
+      ]
+    },
+    "Company Driver": {
+      components: [
+        {key: "timely_delivery", label: "Timely and Complete Delivery", q: "How often does the driver complete all deliveries on or before the scheduled time?"},
+        {key: "delivery_documentation", label: "Delivery Documentation Accuracy", q: "How often does the driver secure complete documentation, including signed Delivery Receipts and GPS photos, for each delivery?"},
+        {key: "punchlist_completion", label: "Delivery Punchlist Completion Rate", q: "How often is the Delivery Punchlist fully completed within the day after delivery?"},
+        {key: "vehicle_maintenance", label: "Regular Vehicle Maintenance Reporting", q: "How often does the driver report vehicle issues on the same day and keep the truck on its preventive maintenance schedule?"},
+        {key: "travel_fuel_logs", label: "Accuracy of Travel and Fuel Logs", q: "How often does the driver submit accurate travel and fuel logs on the weekly schedule?"},
+        {key: "client_coordination", label: "Proper Client Coordination and Confirmation", q: "How often does the driver contact and confirm with the client before arriving for a delivery?"},
+        {key: "inquiry_endorsement", label: "Proper Endorsement of Client Inquiries", q: "How often does the driver forward client inquiries to office personnel within 24 hours of receipt?"}
+      ]
+    },
+    "Warehouse Helper": {
+      components: [
+        {key: "grooming_compliance", label: "Grooming Compliance Score", q: "How often does the helper meet company grooming standards during work hours?"},
+        {key: "slab_placement", label: "Accuracy of Slab Placement and Storage", q: "How often are slabs stored safely and organized according to warehouse protocol?"},
+        {key: "slab_counting_buffing", label: "Daily slab Counting and Buffing Completion", q: "How often does the helper complete the morning slab counting and buffing tasks?"},
+        {key: "labeling_tagging", label: "Labeling and Inventory Tagging Compliance", q: "How often are slabs labeled correctly and measured during handling?"},
+        {key: "securing_slabs", label: "Proper Securing of Slabs During Transport", q: "How often are slabs properly tied down with no shifting reported during transport?"},
+        {key: "delivery_doc_compliance", label: "Delivery Documentation Compliance", q: "How often are deliveries completed with signed DRs and submitted photos?"},
+        {key: "client_endorsement_wh", label: "Timely and Proper Client Endorsement", q: "How often are walk-in clients assisted or endorsed properly within five minutes?"},
+        {key: "ppe_tool_handling", label: "PPE Compliance and Tool Handling", q: "How often does the helper wear PPE and return tools properly during work?"}
+      ]
+    },
+    "Warehouse Supervisor": {
+      components: [
+        {key: "grooming_compliance", label: "Grooming Compliance Score", q: "How often does the helper meet company grooming standards during work hours?"},
+        {key: "slab_placement", label: "Accuracy of Slab Placement and Storage", q: "How often are slabs stored safely and organized according to warehouse protocol?"},
+        {key: "slab_counting_buffing", label: "Daily slab Counting and Buffing Completion", q: "How often does the helper complete the morning slab counting and buffing tasks?"},
+        {key: "labeling_tagging", label: "Labeling and Inventory Tagging Compliance", q: "How often are slabs labeled correctly and measured during handling?"},
+        {key: "securing_slabs", label: "Proper Securing of Slabs During Transport", q: "How often are slabs properly tied down with no shifting reported during transport?"},
+        {key: "delivery_doc_compliance", label: "Delivery Documentation Compliance", q: "How often are deliveries completed with signed DRs and submitted photos?"},
+        {key: "client_endorsement_wh", label: "Timely and Proper Client Endorsement", q: "How often are walk-in clients assisted or endorsed properly within five minutes?"},
+        {key: "ppe_tool_handling", label: "PPE Compliance and Tool Handling", q: "How often does the helper wear PPE and return tools properly during work?"}
+      ]
     }
   },
   "General Accountant": {
