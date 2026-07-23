@@ -314,12 +314,6 @@ const BANK = {
         {key: "random_branch_visit", label: "Random Branch Visit Completion", q: "How often does the manager complete the required random branch visits within the year?"},
         {key: "issue_followup", label: "Issue Follow-up from Branch Visits", q: "How often does the manager monitor and address major issues documented during branch visits?"}
       ]
-    },
-    "HR Generalist": {
-      components: [
-        {key: "labor_standards", label: "Compliance with Labor Standards", questions: ["How often does the HR Generalist keep the branch compliant with applicable labor and workplace safety requirements?", "How often are compliance gaps corrected promptly once identified rather than left outstanding?"]},
-        {key: "hr_policy_compliance", label: "HR Policy Development and Compliance", questions: ["How often does the HR Generalist review and update company policies, the Handbook, and the HR Manual on the annual schedule?", "How often are policy updates kept aligned with current labor laws rather than falling out of date?"]}
-      ]
     }
   },
   "Operations Manager": {
@@ -399,22 +393,12 @@ const BANK = {
       components: [
         {key: "qb_clickup_accuracy", label: "QuickBooks and ClickUp Accuracy Rate", questions: ["How often are financial records entered into QuickBooks and ClickUp without errors that need correction?", "How often does the manager reconcile entries across QuickBooks and ClickUp so both match?", "How often are flagged discrepancies resolved promptly rather than left outstanding?"]}
       ]
-    },
-    "HR Generalist": {
-      components: [
-        {key: "payroll_accuracy", label: "Payroll Accuracy Rate", questions: ["How often are payroll computations completed with zero errors?", "How often do payroll runs stay compliant with company policies and require no corrections afterward?"]}
-      ]
     }
   },
   "Finance Specialist": {
     "Branch Manager": {
       components: [
         {key: "cash_deposit", label: "Cash Handling and Deposit Accuracy", questions: ["How often does the employee verify that cash on hand matches the recorded transactions with no discrepancies?", "How often are collected cash and checks deposited accurately and on schedule?"]}
-      ]
-    },
-    "HR Generalist": {
-      components: [
-        {key: "contribution_processing", label: "Employee Contribution Processing Timeliness & Accuracy", questions: ["How often are statutory contribution claims (SSS, PhilHealth, Pag-IBIG) processed accurately without errors?", "How often are those contributions submitted on or before their deadlines?"]}
       ]
     }
   },
@@ -557,7 +541,7 @@ const BRANCH_ROSTER = {
     "CDO": ["Admin Assistant"]
   },
   "Business Development Officer": {
-    "ANX": ["HR Generalist", "Operations Manager"]
+    "ANX": ["Operations Manager"]
   },
   "Operations Manager": {
     "DVO": ["Branch Manager", "Project Coordinator 1", "Sales Specialist"],
@@ -570,14 +554,12 @@ const BRANCH_ROSTER = {
   "General Accountant": {
     "ILO": ["Branch Manager"],
     "DVO": ["Branch Manager"],
-    "CDO": ["Branch Manager"],
-    "ANX": ["HR Generalist"]
+    "CDO": ["Branch Manager"]
   },
   "Finance Specialist": {
     "ILO": ["Branch Manager"],
     "DVO": ["Branch Manager"],
-    "CDO": ["Branch Manager"],
-    "ANX": ["HR Generalist"]
+    "CDO": ["Branch Manager"]
   },
   "Project Admin": {
     "ILO": ["Branch Manager", "Project Coordinator 1"],
